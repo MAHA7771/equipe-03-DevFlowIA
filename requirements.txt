@@ -1,0 +1,8 @@
+﻿slack-bolt
+groq
+PyGithub
+requests
+pydantic
+python-dotenv
+radon
+pytest
