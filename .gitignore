@@ -46,3 +46,9 @@ Thumbs.db
 htmlcov/
 
 
+
+.env
+workspace/
+__pycache__/
+*.db
+.venv/
