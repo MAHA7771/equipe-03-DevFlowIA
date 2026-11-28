@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 Mode = Literal["task", "fix", "docs", "audit", "ask", "analyze"]
 Severity = Literal["critical", "high", "medium", "low"]
+Grade = Literal["A", "B", "C", "D", "E"]
 
 
 class SlackInfo(BaseModel):
@@ -101,6 +102,20 @@ class Finding(BaseModel):  # §6.8  scanners -> runner -> P1
     recommendation: str = ""
     confidence: float = 0.5
     source: Literal["regex", "llm", "hybrid", "osv", "radon"] = "regex"
+
+
+class Score(BaseModel):  # §6.9  valeur et note du Security Score
+    value: int
+    grade: Grade
+
+
+class SecurityReport(BaseModel):  # §6.9  P1
+    report_id: str
+    task_id: str
+    generated_at: str
+    findings: list[Finding] = Field(default_factory=list)
+    counts: dict[str, int] = Field(default_factory=dict)  # critical, high, medium, low
+    score: Score
 
 
 class RepoFile(BaseModel):
