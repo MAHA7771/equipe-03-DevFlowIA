@@ -1,0 +1,36 @@
+{
+  "start": 100,
+  "floor": 0,
+  "weights": {
+    "critical": 25,
+    "high": 10,
+    "medium": 4,
+    "low": 1
+  },
+  "grades": [
+    { "min": 90, "grade": "A" },
+    { "min": 75, "grade": "B" },
+    { "min": 60, "grade": "C" },
+    { "min": 40, "grade": "D" },
+    { "min": 0,  "grade": "E" }
+  ],
+  "levels": {
+    "critical": {
+      "definition": "À corriger tout de suite : secret réel exposé",
+      "rules": ["exposed_secret"]
+    },
+    "high": {
+      "definition": "Faille exploitable ou accès non contrôlé probable",
+      "rules": ["sql_injection", "xss", "hardcoded_password", "auth_issue", "authz_issue"]
+    },
+    "medium": {
+      "definition": "Faiblesse de configuration ou de dépendance",
+      "rules": ["misconfiguration", "vulnerable_dependency"]
+    },
+    "low": {
+      "definition": "Bonne pratique ou version dépassée",
+      "rules": ["outdated_dependency"]
+    }
+  },
+  "ignored_rules": ["bug", "complexity", "bad_practice", "duplicate_code"]
+}
