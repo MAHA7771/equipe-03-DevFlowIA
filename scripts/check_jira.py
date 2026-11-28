@@ -1,56 +1,44 @@
+# scripts/check_jira.py
 import os
+import sys
+
 import requests
 from dotenv import load_dotenv
 from requests.auth import HTTPBasicAuth
 
 load_dotenv()
 
-BASE_URL = os.getenv("JIRA_BASE_URL")
-EMAIL = os.getenv("JIRA_EMAIL")
-API_TOKEN = os.getenv("JIRA_API_TOKEN")
-PROJECT_KEY = os.getenv("JIRA_PROJECT_KEY")
 
-auth = HTTPBasicAuth(EMAIL, API_TOKEN)
+def main() -> int:
+    base = os.getenv("JIRA_BASE_URL")
+    key = os.getenv("JIRA_PROJECT_KEY")
+    if not base or not os.getenv("JIRA_EMAIL") or not os.getenv("JIRA_API_TOKEN"):
+        print("Variables JIRA_* manquantes dans .env")
+        return 1
 
-headers = {
-    "Accept": "application/json"
-}
+    auth = HTTPBasicAuth(os.environ["JIRA_EMAIL"], os.environ["JIRA_API_TOKEN"])
+    headers = {"Accept": "application/json"}
 
-# 1. Vérifier l'authentification
-response = requests.get(
-    f"{BASE_URL}/rest/api/2/myself",
-    headers=headers,
-    auth=auth
-)
+    r = requests.get(f"{base}/rest/api/2/myself", headers=headers, auth=auth)
+    if r.status_code != 200:
+        print("Auth échouée :", r.status_code, r.text)
+        return 1
+    print("Compte :", r.json().get("displayName"))
 
-if response.status_code == 200:
-    print("Connexion Jira réussie !")
-    print("Status HTTP :", response.status_code)
-    print("Content-Type :", response.headers.get("Content-Type"))
-    print("Réponse Jira :")
-    print(response.text)
-    if response.status_code == 200:
-        data = response.json()
-        print("Compte :", data.get("displayName"))
-    else:
-        print("Erreur Jira :", response.status_code)
-else:
-    print("Erreur d'authentification :", response.status_code)
-    print(response.text)
-    exit()
+    r = requests.get(f"{base}/rest/api/2/project/{key}", headers=headers, auth=auth)
+    if r.status_code != 200:
+        print("Projet introuvable :", r.status_code, r.text)
+        return 1
+    print("Projet :", r.json()["name"], f"({r.json()['key']})")
 
-# 2. Vérifier le projet
-response = requests.get(
-    f"{BASE_URL}/rest/api/2/project/{PROJECT_KEY}",
-    headers=headers,
-    auth=auth
-)
+    # Statuts disponibles dans le workflow du projet
+    r = requests.get(f"{base}/rest/api/2/project/{key}/statuses", headers=headers, auth=auth)
+    if r.status_code == 200:
+        for issue_type in r.json():
+            names = [s["name"] for s in issue_type["statuses"]]
+            print(f"Statuts pour {issue_type['name']} :", names)
+    return 0
 
-if response.status_code == 200:
-    project = response.json()
-    print("Projet trouvé :", project["name"])
-    print("Clé :", project["key"])
-else:
-    print("Erreur projet :", response.status_code)
-    print(response.text)
-    
+
+if __name__ == "__main__":
+    sys.exit(main())
